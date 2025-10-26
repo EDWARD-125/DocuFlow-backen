@@ -3,16 +3,13 @@ package com.docuflow.dto.mapper;
 import com.docuflow.dto.response.DocumentResponse;
 import com.docuflow.dto.response.TemplateResponse;
 import com.docuflow.models.*;
+import org.springframework.stereotype.Component;
 
 /**
- * Mapper para convertir entidades Document / DocumentTemplate a DTOs.
- * Compatible con todos los patrones de diseño usados en el proyecto.
+ * ✅ CORRECTO: Ahora es un @Component
  */
+@Component
 public class DocumentDTOMapper {
-
-    // =========================================================
-    // 🧩 CONVERSIÓN A DOCUMENT RESPONSE
-    // =========================================================
 
     public DocumentResponse toDocumentResponse(Document document, String patternUsed) {
         if (document == null) return null;
@@ -35,7 +32,7 @@ public class DocumentDTOMapper {
                 document.getTitle(),
                 document.getAuthor(),
                 document.getType(),
-                document.getContent(),
+                document.generateDocument(), // Contenido generado
                 patternUsed
         );
     }
@@ -53,40 +50,28 @@ public class DocumentDTOMapper {
         );
     }
 
-    // =========================================================
-    // 🧩 CONVERSIÓN A TEMPLATE RESPONSE
-    // =========================================================
-
     public TemplateResponse toTemplateResponse(DocumentTemplate template) {
         if (template == null) return null;
 
         return new TemplateResponse(
                 template.getId(),
-                template.getTitle(),       // nombre
-                "Plantilla disponible",    // descripción
-                "Prototype",               // tipo
-                template.getContent()      // contenido
+                template.getTitle(),
+                template.getDescription(),
+                template.getType(),
+                template.getContent()
         );
     }
 
-    // =========================================================
-    // ⚙️ DETERMINAR PATRÓN USADO
-    // =========================================================
-
-    /**
-     * Determina el patrón de diseño usado según la clase del documento.
-     */
     public String determinePatternUsed(Document document) {
-        if (document instanceof ComplexDocument) {
-            return "Builder Pattern";
-        } else if (document instanceof DocumentTemplate) {
+        if (document instanceof DocumentTemplate) {
             return "Prototype Pattern";
+        } else if (document instanceof ComplexDocument) {
+            return "Builder Pattern";
         } else if (document instanceof Contract ||
                    document instanceof Report ||
                    document instanceof Invoice) {
             return "Factory Pattern";
-        } else {
-            return "Unknown Pattern";
         }
+        return "Unknown Pattern";
     }
 }

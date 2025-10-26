@@ -1,11 +1,16 @@
 package com.docuflow.builders;
 
-import org.springframework.stereotype.Component;
 import com.docuflow.models.ComplexDocument;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Builder externo para construir objetos ComplexDocument.
- * Aplica el patrón Builder sin depender de clases internas.
+ * ✅ Builder CORREGIDO que crea objetos inmutables
+ * - Construye con constructor, no con setters
+ * - Valida antes de construir
+ * - Fluent API para facilitar uso
  */
 @Component
 public class DocumentBuilder {
@@ -13,12 +18,16 @@ public class DocumentBuilder {
     private String title;
     private String author;
     private String content;
+    private String type;
     private String header;
     private String footer;
-    private String type;
+    private List<String> sections;
 
-    public DocumentBuilder() {}
+    public DocumentBuilder() {
+        this.sections = new ArrayList<>();
+    }
 
+    // Fluent API
     public DocumentBuilder withTitle(String title) {
         this.title = title;
         return this;
@@ -34,6 +43,11 @@ public class DocumentBuilder {
         return this;
     }
 
+    public DocumentBuilder withType(String type) {
+        this.type = type;
+        return this;
+    }
+
     public DocumentBuilder withHeader(String header) {
         this.header = header;
         return this;
@@ -44,23 +58,82 @@ public class DocumentBuilder {
         return this;
     }
 
-    public DocumentBuilder withType(String type) {
-        this.type = type;
+    public DocumentBuilder withSections(List<String> sections) {
+        this.sections = sections != null ? new ArrayList<>(sections) : new ArrayList<>();
+        return this;
+    }
+
+    public DocumentBuilder addSection(String section) {
+        if (this.sections == null) {
+            this.sections = new ArrayList<>();
+        }
+        this.sections.add(section);
         return this;
     }
 
     /**
-     * Construye un objeto ComplexDocument completo.
-     * @return ComplexDocument construido
+     * ✅ CORRECTO: Valida y construye con constructor (inmutable)
      */
     public ComplexDocument build() {
-        ComplexDocument doc = new ComplexDocument();
-        doc.setTitle(this.title);
-        doc.setAuthor(this.author);
-        doc.setContent(this.content);
-        doc.setHeader(this.header);
-        doc.setFooter(this.footer);
-        doc.setType(this.type);
-        return doc;
+        // Validaciones obligatorias
+        if (title == null || title.isBlank()) {
+            throw new IllegalStateException("Title is required for building a ComplexDocument");
+        }
+        
+        if (content == null || content.isBlank()) {
+            throw new IllegalStateException("Content is required for building a ComplexDocument");
+        }
+        
+        // Valores por defecto
+        if (author == null || author.isBlank()) {
+            author = "Unknown";
+        }
+        
+        if (type == null || type.isBlank()) {
+            type = "COMPLEX";
+        }
+        
+        // ✅ Construir con constructor (NO con setters)
+        ComplexDocument document = new ComplexDocument(
+            null,           // ID se asigna en repository
+            this.title,
+            this.author,
+            this.content,
+            this.type,
+            this.header,
+            this.footer,
+            this.sections != null ? new ArrayList<>(this.sections) : new ArrayList<>()
+        );
+        
+        // Reset builder para reutilización
+        reset();
+        
+        return document;
+    }
+
+    /**
+     * Resetea el builder para poder reutilizarlo
+     */
+    private void reset() {
+        this.title = null;
+        this.author = null;
+        this.content = null;
+        this.type = null;
+        this.header = null;
+        this.footer = null;
+        this.sections = new ArrayList<>();
+    }
+
+    /**
+     * Método de conveniencia para documentos estándar
+     */
+    public ComplexDocument buildStandard(String title, String content, String author) {
+        return this.withTitle(title)
+                .withContent(content)
+                .withAuthor(author)
+                .withType("COMPLEX")
+                .withHeader("DocuFlow System")
+                .withFooter("Page 1")
+                .build();
     }
 }

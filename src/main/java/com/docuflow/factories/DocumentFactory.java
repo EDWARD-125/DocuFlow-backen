@@ -1,10 +1,17 @@
 package com.docuflow.factories;
 
-import com.docuflow.models.Document;
 import com.docuflow.models.*;
+import org.springframework.stereotype.Component;
 
+/**
+ * ✅ CORRECTO: Ahora es un @Component de Spring
+ */
+@Component
 public class DocumentFactory {
 
+    /**
+     * Factory Method - Crea documentos según el tipo
+     */
     public Document createDocument(String type) {
         switch (type.toUpperCase()) {
             case "INVOICE":
@@ -14,7 +21,7 @@ public class DocumentFactory {
             case "CONTRACT":
                 return new Contract();
             default:
-                throw new IllegalArgumentException("Tipo de documento no soportado: " + type);
+                throw new IllegalArgumentException("Unknown document type: " + type);
         }
     }
 }
