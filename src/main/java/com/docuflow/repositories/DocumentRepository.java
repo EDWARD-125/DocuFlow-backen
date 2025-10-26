@@ -16,13 +16,13 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Repository
 public class DocumentRepository {
-    
+
     // Almacenamiento en memoria thread-safe
     private final Map<Long, Document> storage = new ConcurrentHashMap<>();
-    
+
     // Generador de IDs
     private final AtomicLong idGenerator = new AtomicLong(1);
-    
+
     /**
      * Guarda un documento y retorna el documento con ID asignado
      */
@@ -30,13 +30,18 @@ public class DocumentRepository {
         if (document == null) {
             throw new IllegalArgumentException("Document cannot be null");
         }
-        
-        Long id = idGenerator.getAndIncrement();
-        storage.put(id, document);
-        
+
+        // Generar ID si no existe
+        if (document.getId() == null) {
+            Long id = idGenerator.getAndIncrement();
+            document.setId(id); // ✅ AGREGAR ESTA LÍNEA
+        }
+
+        storage.put(document.getId(), document);
+
         return document;
     }
-    
+
     /**
      * Encuentra un documento por ID
      */
@@ -44,32 +49,32 @@ public class DocumentRepository {
         if (id == null) {
             return Optional.empty();
         }
-        
+
         return Optional.ofNullable(storage.get(id));
     }
-    
+
     /**
      * Encuentra todos los documentos
      */
     public List<Document> findAll() {
         return new ArrayList<>(storage.values());
     }
-    
+
     /**
      * Encuentra documentos por tipo
      */
     public List<Document> findByType(String type) {
         List<Document> result = new ArrayList<>();
-        
+
         for (Document doc : storage.values()) {
             if (doc.getType().equalsIgnoreCase(type)) {
                 result.add(doc);
             }
         }
-        
+
         return result;
     }
-    
+
     /**
      * Elimina un documento por ID
      */
@@ -78,28 +83,28 @@ public class DocumentRepository {
             storage.remove(id);
         }
     }
-    
+
     /**
      * Verifica si existe un documento con el ID dado
      */
     public boolean existsById(Long id) {
         return id != null && storage.containsKey(id);
     }
-    
+
     /**
      * Cuenta el total de documentos
      */
     public long count() {
         return storage.size();
     }
-    
+
     /**
      * Elimina todos los documentos
      */
     public void deleteAll() {
         storage.clear();
     }
-    
+
     /**
      * Actualiza un documento existente
      */
@@ -107,11 +112,11 @@ public class DocumentRepository {
         if (id == null || document == null) {
             throw new IllegalArgumentException("ID and document cannot be null");
         }
-        
+
         if (!existsById(id)) {
             throw new IllegalArgumentException("Document with ID " + id + " does not exist");
         }
-        
+
         storage.put(id, document);
         return document;
     }

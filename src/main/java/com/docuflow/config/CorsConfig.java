@@ -11,9 +11,9 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOriginPatterns("http://localhost:3000", "http://localhost:5173") // 🔹 cambio aquí
+                .allowedOriginPatterns("*") // ✅ Permite TODOS los orígenes (incluye Postman)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(false); // ✅ IMPORTANTE: false cuando usas "*"
     }
 }
